@@ -5,6 +5,8 @@ Utility methods for the Database Work Log
 """
 
 import datetime
+import os
+import time
 
 import models
 
@@ -39,7 +41,8 @@ def delete_task(old_id):
 
 def find_by_date_range(start_date, end_date):
     """Find ids for tasks with dates in between start and end date."""
-    extended_end_date = end_date + datetime.timedelta(days=1)  # add one day to be inclusive
+    extended_end_date = end_date + \
+        datetime.timedelta(seconds=1)  # add one second to be inclusive
     return [task.id for task in models.Task.select(models.Task.id).where(
         models.Task.date.between(
             start_date, extended_end_date)).order_by(models.Task.date)]
@@ -86,43 +89,77 @@ def find_by_date(date):
     return [task.id for task in models.Task.select(models.Task.id).where(
         models.Task.date == date).order_by(models.Task.id)]
 
+def test_empty_database():
+    return len(models.Task.select()) == 0
+
 
 def get_task(ind):
+    """Get task by id"""
     return models.Task.get(id=ind)
+
+def clear():
+    """Clear screen."""
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+def item_table(item_list, heading=None):
+    """Make an item table."""
+    clear()
+    print(heading)
+    for index, item in enumerate(item_list):
+        print('{} - {}'.format(index + 1, item))
+    choice = input('Which option do you choose?  ')
+    try:
+        choice = int(choice)
+        if choice not in range(1, len(item_list) + 1):
+            raise ValueError("Invalid choice.")
+    except ValueError as err:
+        print(err)
+        time.sleep(1)
+        return item_table(item_list, heading)
+    else:
+        return item_list[choice - 1]
+
+
+def enter_task():
+    """Add an entry."""
+    clear()
+    # Employee
+    while True:
+        employee = input("Employee name:  ")
+        if employee is not None:
+            break
+        else:
+            print("Try again.")
+    # Taskname
+    while True:
+        taskname = input("Task name:  ")
+        if taskname is not None:
+            break
+        else:
+            print("Try again.")
+    # Minutes
+    while True:
+        minutes = input("Minutes spent:  ")
+        try:
+            minutes = int(minutes)
+        except Exception:
+            print("Try again.")
+        else:
+            break
+    # Notes
+    notes = input("Any notes:  ")
+    if not notes:
+        notes = "none"
+
+    # Date
+    date = datetime.datetime.now().date()
+    return {"employee": employee,
+            "taskname": taskname,
+            "minutes": minutes,
+            "notes": notes,
+            "date": date}
 
 
 if __name__ == '__main__':
-
-    a = {'employee': 'a',
-         'taskname': 'task a',
-         'minutes': 15,
-         'notes': 'abcdef',
-         'date':  datetime.datetime.now().date()}
-    b = {'employee': 'b',
-         'taskname': 'task b',
-         'minutes': 20,
-         'notes': 'abcdef',
-         'date':  datetime.datetime.now().date()}
-    c = {'employee': 'c',
-         'taskname': 'task c',
-         'minutes': 15,
-         'notes': 'zyxwvu',
-         'date':  datetime.datetime.now().date()}
-    d = {'employee': 'a',
-         'taskname': 'task d',
-         'minutes': 20,
-         'notes': 'abcdef',
-         'date':  datetime.datetime.now().date()}
-
-    models.Task.create(**a)
-    models.Task.create(**b)
-    models.Task.create(**c)
-    models.Task.create(**d)
-
-    tasks_id = find_by_employee('b')
-
-    for task_id in tasks_id:
-        task = models.Task.get(id=task_id)
-        print(task.id)
-        print(task.employee)
-        print(task.taskname)
+    pass
