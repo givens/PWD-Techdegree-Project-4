@@ -5,7 +5,10 @@ Utility methods for the Database Work Log
 """
 
 import datetime
+
 import models
+
+fmt = '%Y%m%d'
 
 
 def create_task(new_task):
@@ -17,70 +20,76 @@ def create_task(new_task):
         pass
 
 
-def save_task(old_task_id, new_task):
+def save_task(old_id, new_task):
     """Save in place a new task, or edit it."""
-    task = models.Task.get(id=old_task_id)
+    task = models.Task.get(id=old_id)
     task.employee = new_task['employee']
     task.taskname = new_task['taskname']
     task.minutes = new_task['minutes']
     task.notes = new_task['notes']
-    task.date = new_task['date']
+    #task.date = new_task['date']
     task.save()
 
 
-def delete_task(old_task_id):
+def delete_task(old_id):
     """Delete a task."""
-    old_task = models.Task.get(id=old_task_id)
+    old_task = models.Task.get(id=old_id)
     old_task.delete_instance()
 
 
 def find_by_date_range(start_date, end_date):
     """Find ids for tasks with dates in between start and end date."""
-    end_date += datetime.timedelta(days=1)  # add one day to be inclusive
-    return [task.id for task in models.Task.select().where(models.Task.date.between(
-        start_date, end_date)).order_by(models.Task.date)]
+    extended_end_date = end_date + datetime.timedelta(days=1)  # add one day to be inclusive
+    return [task.id for task in models.Task.select(models.Task.id).where(
+        models.Task.date.between(
+            start_date, extended_end_date)).order_by(models.Task.date)]
 
 
 def find_by_time_spent(minutes):
     """Find ids for tasks with exact minutes."""
     return [task.id for task in
-            models.Task.select().where(models.Task.minutes ==
-                minutes).order_by(models.Task.id)]
+            models.Task.select(models.Task.id).where(
+                models.Task.minutes == minutes).order_by(models.Task.id)]
 
 
 def find_by_search_term(query):
-    """Find ids for tasks where query in taskname or notes."""
+    """Find ids for tasks where query wildcard in taskname or notes."""
     return [task.id for task in
-            models.Task.select().where(models.Task.taskname.contains(
-        query) | models.Task.notes.contains(query)).order_by(models.Task.id)]
+            models.Task.select(models.Task.id).where(
+                models.Task.taskname.contains(query) |
+                models.Task.notes.contains(query)).order_by(models.Task.id)]
 
 
 def find_by_employee(query):
     """Find ids for tasks where query exactly matches query."""
     return [task.id for task in
-            models.Task.select().where(models.Task.employee == query)]
+            models.Task.select(models.Task.id).where(
+                models.Task.employee == query)]
 
 
 def find_unique_employees():
     """Find unique employees in db."""
-    return [task.employee for task in models.Task.select().group_by(
-        models.Task.employee).order_by(models.Task.employee)]
+    return [task.employee for task in
+            models.Task.select(models.Task.employee).distinct().order_by(
+                models.Task.employee)]
 
 
 def find_unique_dates():
     """Find unique dates in db."""
-    return [task.date for task in models.Task.select().group_by(
-        models.Task.date).order_by(models.Task.date)]
+    return [task.date.strftime(fmt) for task in
+            models.Task.select(models.Task.date).distinct().order_by(
+                models.Task.date)]
 
 
 def find_by_date(date):
     """Find ids for tasks with exact date in query."""
-    return [task.id for task in models.Task.select().where(
+    return [task.id for task in models.Task.select(models.Task.id).where(
         models.Task.date == date).order_by(models.Task.id)]
 
 
-def get_task(task_id):
-    return models.Task.get(id=task_id)
+def get_task(ind):
+    return models.Task.get(id=ind)
+
 
 if __name__ == '__main__':
 
