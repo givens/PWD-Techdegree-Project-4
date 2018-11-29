@@ -1,7 +1,7 @@
 """
-views.py
+dbworklog.py
 --------
-View for Database Worklog
+Database Worklog
 """
 
 from collections import OrderedDict
@@ -23,21 +23,38 @@ class Menu:
 
     def menu_loop(self):
         """Show the menu."""
-        choice = None
         while True:
-            utils.clear()
-            print(self.heading)
-            for k, v in self.menu.items():
-                print('{} - {}'.format(k, v.__doc__))
-            choice = input("Which option do you choose?  ").lower().strip()
+            func = self._loop()
+            func()
 
-            if choice in self.menu:
-                self.menu[choice]()
+    def _loop(self):
+        self._print_heading()
+        self._print_info()
+        return self._choose_option()
+
+    def _print_heading(self):
+        """Display the heading"""
+        utils.clear()
+        print(self.heading)
+
+    def _print_info(self):
+        """Print menu options info."""
+        for k, v in self.menu.items():
+            print('{} - {}'.format(k, v.__doc__))
+
+    def _choose_option(self):
+        """Make choice among menu options."""
+        choice = input("Which option do you choose?  ").lower().strip()
+        if choice in self.menu:
+            return self.menu[choice]
+
+    def _test_menu(self):
+        """Basic test for menu."""
+        return 0
 
 
 class MainMenu(Menu):
     """Main menu"""
-
     def __init__(self):
         super().__init__(
             OrderedDict([
@@ -64,6 +81,7 @@ class MainMenu(Menu):
         print("Quit.")
         sys.exit(0)
 
+
 class ReducedMainMenu(Menu):
     """Main menu without search menu because db is empty"""
     def __init__(self):
@@ -89,7 +107,6 @@ class ReducedMainMenu(Menu):
 
 class SearchMenu(Menu):
     """Result menu"""
-
     def __init__(self):
         super().__init__(
             OrderedDict([
@@ -106,92 +123,96 @@ class SearchMenu(Menu):
         """Go to main menu."""
         MainMenu().menu_loop()
 
-    def find_employee(self):
-        """Find by employee."""
-        # List unique employees in order
-        # Provide choice
-        # User selects choice
-        # Choice is searched for
-        # Go to ResultMenu
+    def _employee_ids(self):
+        """Get employee ids relating to ids in database"""
         employees = utils.find_unique_employees()
         employee = utils.item_table(employees, "Employees")
-        ids = utils.find_by_employee(employee)
+        return utils.find_by_employee(employee)
+
+    def _show_results(self, ids):
+        """Show results menu or tell the user there is no entries."""
         if ids:
             ResultMenu(ids).menu_loop()
         else:
             print("No entries.")
             time.sleep(1)
+            return 0
 
-    def find_date(self):
-        """Find by date."""
+    def find_employee(self):
+        """Find by employee."""
+        ids = self._employee_ids()
+        self._show_results(ids)
+
+    def _date_ids(self):
+        """Get exact date ids relating to ids in database"""
         dates = utils.find_unique_dates()
         date = utils.item_table(dates, "Dates")
         date = datetime.datetime.strptime(date, fmt).date()
-        ids = utils.find_by_date(date)
-        if ids:
-            ResultMenu(ids).menu_loop()
-        else:
-            print("No entries.")
-            time.sleep(1)
+        return utils.find_by_date(date)
+
+    def find_date(self):
+        """Find by date."""
+        ids = self._date_ids()
+        self._show_results(ids)
+
+    def _date_range_ids(self, start_date, end_date):
+        """Get date range ids relating to ids in database"""
+        return utils.find_by_date_range(start_date, end_date)
+
+    def _get_date(self, question="Enter date (YYYYMMDD):  "):
+        """Get date for date ranges."""
+        while True:
+            date = input(question)
+            try:
+                date = datetime.datetime.strptime(date, fmt).date()
+            except Exception:
+                print("Try again.")
+            else:
+                return date
+
+    def _get_dates_ids(self):
+        start_date = self._get_date(
+            "Enter start date (YYYYMMDD):  ")
+        end_date = self._get_date(
+            "Enter end date (YYYYMMDD):  ")
+        return self._date_range_ids(start_date, end_date)
 
     def find_date_range(self):
         """Find by date range."""
+        ids = self._get_dates_ids()
+        self._show_results(ids)
+
+    def _get_time_spent(self):
+        """Get minutes from user."""
         while True:
-            start_date = input("Enter start date (YYYYMMDD):  ")
+            minutes = input("Enter minutes:  ")
             try:
-                start_date = datetime.datetime.strptime(start_date, fmt).date()
+                minutes = int(minutes)
             except Exception:
                 print("Try again.")
+                continue
             else:
-                break
+                return minutes
 
-        while True:
-            end_date = input("Enter end date (YYYYMMDD):  ")
-            try:
-                end_date = datetime.datetime.strptime(end_date, fmt).date()
-            except Exception:
-                print("Try again.")
-            else:
-                break
-
-        ids = utils.find_by_date_range(start_date, end_date)
-        if ids:
-            ResultMenu(ids).menu_loop()
-        else:
-            print("No entries.")
-            time.sleep(1)
+    def _time_spent_ids(self):
+        """Get time spent ids relating to ids in database"""
+        minutes = self._get_time_spent()
+        return utils.find_by_time_spent(minutes)
 
     def find_time_spent(self):
         """Find by minutes spent."""
-        # Enter minutes
-        # Exact minutes is searched for
-        # Go to ResultMenu
-        minutes = input("Enter minutes:  ")
-        try:
-            minutes = int(minutes)
-        except Exception:
-            print("Try again.")
-            return self.find_time_spent()
-        else:
-            ids = utils.find_by_time_spent(minutes)
-            if ids:
-                ResultMenu(ids).menu_loop()
-            else:
-                print("No entries.")
-                time.sleep(1)
+        ids = self._time_spent_ids()
+        self._show_results(ids)
+
+    def _search_term_ids(self):
+        """Obtain search term ids relating to ids in database"""
+        query = input("Enter search term:  ")
+        return utils.find_by_search_term(query)
 
     def find_search_term(self):
         """Find by search term."""
-        # Enter query
-        # Query is searched for in title and notes
-        # Go to ResultMenu
-        query = input("Enter search term:  ")
-        ids = utils.find_by_search_term(query)
-        if ids:
-            ResultMenu(ids).menu_loop()
-        else:
-            print("No entries.")
-            time.sleep(1)
+        ids = self._search_term_ids()
+        self._show_results(ids)
 
 
 class ResultMenu(Menu):
@@ -228,34 +249,43 @@ class ResultMenu(Menu):
         """Show the menu."""
         choice = None
         while True:
-            utils.clear()
-            print(self.heading)
-            self.display()
-            for k, v in self.menu.items():
-                print('{} - {}'.format(k, v.__doc__))
-            choice = input("Which option do you choose?  ").lower().strip()
+            self.check()
+            self._print_heading()
+            print(str(self))
+            self._print_info()
+            func = self._choose_option()
+            func()
 
-            if choice in self.menu:
-                self.menu[choice]()
-
-    def __len__(self):
-        return len(self.ids)
-
-    def display(self):
-        """Display a result including
-        employee, task, minutes, notes, and date."""
+    def check(self):
         if not self.ids:
             if not utils.test_empty_database():
                 self.search_menu()
             else:
                 self.reduced_main_menu()
+
+
+    def __len__(self):
+        return len(self.ids)
+
+    def __str__(self):
+        """Display a result including
+        employee, task, minutes, notes, and date."""
         task = utils.get_task(self.ids[self.index])
-        print("\nEntry {} out of {}".format(self.index + 1, len(self)))
-        print("\nEmployee:  " + task.employee)
-        print("Taskname:  " + task.taskname)
-        print("Minutes:   " + str(task.minutes))
-        print("Notes:     " + task.notes)
-        print("Date:      " + task.date.strftime(fmt) + "\n")
+        return """
+Entry {} out of {}
+
+Employee:  {}
+Taskname:  {}
+Minutes:   {}
+Notes:     {}
+Date:      {}
+""".format(self.index + 1,
+    len(self),
+    task.employee,
+    task.taskname,
+    task.minutes,
+    task.notes,
+    task.date.strftime(fmt))
 
     def next(self):
         """Go to next task."""
@@ -286,7 +316,6 @@ class ResultMenu(Menu):
 
 def run():
     models.initialize()
-    tasks = models.Task.select()
     if not utils.test_empty_database():
         MainMenu().menu_loop()
     else:

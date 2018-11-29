@@ -15,11 +15,7 @@ fmt = '%Y%m%d'
 
 def create_task(new_task):
     """Create/add a new task."""
-    try:
-        models.Task.create(**new_task)
-    except IntegrityError:
-        # Don't add duplicates
-        pass
+    models.Task.create(**new_task)
 
 
 def save_task(old_id, new_task):
@@ -31,6 +27,7 @@ def save_task(old_id, new_task):
     task.notes = new_task['notes']
     #task.date = new_task['date']  # don't update date
     task.save()
+    return 0
 
 
 def delete_task(old_id):
@@ -90,6 +87,7 @@ def find_by_date(date):
         models.Task.date == date).order_by(models.Task.id)]
 
 def test_empty_database():
+    """If database is empty, return True."""
     return len(models.Task.select()) == 0
 
 
@@ -102,64 +100,105 @@ def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 
+def item_table_list(item_list):
+    """List choices."""
+    for index, item in enumerate(item_list):
+        print('{} - {}'.format(index + 1, item))
+
+
+def item_table_evaluation(item_list):
+    """Evaluate if choice is good.  If so, return that option."""
+    while True:
+        choice = input("Which option do you choose?  ")
+        try:
+            choice = int(choice)
+            if choice not in range(1, len(item_list) + 1):
+                raise ValueError("Try again.")
+        except ValueError as err:
+            print(err)
+            time.sleep(1)
+            continue
+        else:
+            return item_list[choice - 1]
+
+
 def item_table(item_list, heading=None):
     """Make an item table."""
     clear()
-    print(heading)
-    for index, item in enumerate(item_list):
-        print('{} - {}'.format(index + 1, item))
-    choice = input('Which option do you choose?  ')
-    try:
-        choice = int(choice)
-        if choice not in range(1, len(item_list) + 1):
-            raise ValueError("Invalid choice.")
-    except ValueError as err:
-        print(err)
-        time.sleep(1)
-        return item_table(item_list, heading)
-    else:
-        return item_list[choice - 1]
+    if heading:
+        print(heading)
+    item_table_list(item_list)
+    item = item_table_evaluation(item_list)
+    return item
 
 
-def enter_task():
-    """Add an entry."""
-    clear()
-    # Employee
+def enter_item(question="Enter item:  ", item=None):
+    """Generic string entry."""
     while True:
-        employee = input("Employee name:  ")
-        if employee is not None:
-            break
-        else:
+        if not item:
+            item = input(question)
+        if item == None:
             print("Try again.")
-    # Taskname
+            continue
+        return item
+
+
+def enter_employee(employee=None):
+    """Employee entry"""
+    if employee:
+        print(employee)
+    return enter_item("Enter employee name:  ",
+                        employee)
+
+
+def enter_taskname(taskname=None):
+    """Task name entry."""
+    if taskname:
+        print(taskname)
+    return enter_item("Enter task name:  ",
+                        taskname)
+
+
+def enter_minutes(minutes=None):
+    """Time spent in minutes entry."""
+    if minutes:
+        print(minutes)
     while True:
-        taskname = input("Task name:  ")
-        if taskname is not None:
-            break
-        else:
-            print("Try again.")
-    # Minutes
-    while True:
-        minutes = input("Minutes spent:  ")
+        if not minutes:
+            minutes = input("Enter time spent in minutes:  ")
         try:
             minutes = int(minutes)
         except Exception:
             print("Try again.")
-        else:
-            break
-    # Notes
-    notes = input("Any notes:  ")
-    if not notes:
-        notes = "none"
+            continue
+        return minutes
 
-    # Date
-    date = datetime.datetime.now().date()
+
+def enter_notes(notes=None):
+    """Enter notes string."""
+    if notes:
+        print(notes)
+    else:
+        notes = input("Enter notes:  ")
+    return notes
+
+
+def enter_task(employee=None,
+                taskname=None,
+                minutes=None,
+                notes=None,
+                date=None):
+    """Add an entry."""
+    clear()
+    employee = enter_employee(employee)
+    taskname = enter_taskname(taskname)
+    minutes = enter_minutes(minutes)
+    notes = enter_notes(notes)
+    if not date:
+        date = datetime.datetime.now().date()
     return {"employee": employee,
             "taskname": taskname,
             "minutes": minutes,
             "notes": notes,
             "date": date}
 
-
-if __name__ == '__main__':
-    pass
