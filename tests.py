@@ -33,12 +33,10 @@ class ModelsTestCases(TestCase):
             models.initialize()
             models.initialize()
 
-
-
 class UtilsTestCase(TestCase):
     """Test utils"""
     def setUp(self):
-        self.date = datetime.datetime.now()
+        self.date = datetime.datetime.now().date()
         self.min1 = 180
         self.min2 = 240
         self.emp = 'test'
@@ -123,7 +121,8 @@ class UtilsTestCase(TestCase):
     def test_get_task(self):
         out = utils.find_by_date(self.date)
         task= utils.get_task(out[0])
-        self.assertEqual(task.date, self.date)
+        self.assertEqual(task.date,
+            datetime.datetime.strptime(self.date.strftime(fmt), fmt))
 
     def test_table_evaluation(self):
         item_list = ['a']
@@ -149,7 +148,7 @@ class UtilsTestCase(TestCase):
 
     def test_enter_taskname(self):
         name = 'task1'
-        out = utils.enter_taskname(name)
+        out = utils.enter_taskname(taskname=name)
         assert out == name
 
     def test_enter_minute(self):
@@ -192,16 +191,12 @@ class UtilsTestCase(TestCase):
             utils.delete_task(9999999999999999)
 
 
-
-
-
-
 class DBWorkLogTestCases(TestCase):
     """Test dbworklog"""
 
     def setUp(self):
 
-        self.date = datetime.datetime.now()
+        self.date = datetime.datetime.now().date()
         self.min1 = 180
         self.min2 = 240
         self.emp = 'test'
@@ -453,8 +448,10 @@ class DBWorkLogTestCases(TestCase):
             assert type(out) == type(None)
 
     def test_main_menu_enter_task(self):
-        out = self.main_menu.enter_task()
-        assert type(out) == type(None)
+        with patch('builtins.input', side_effect =
+            [self.emp, self.task, self.min1, self.notes2, self.date]):
+            out = self.main_menu.enter_task()
+            assert type(out) == type(None)
 
     #def test_reduced_menu_enter_task(self):
     #    out = self.reduced_main_menu.enter_task()

@@ -21,7 +21,8 @@ class Menu:
         self.menu = menu
         self.heading = heading
 
-    def _run(self, func):
+    @staticmethod
+    def _run(func):
         """Run function by calling it"""
         func()
 

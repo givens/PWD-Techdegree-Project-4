@@ -189,10 +189,14 @@ def enter_task(employee=None,
                 date=None):
     """Add an entry."""
     clear()
-    employee = enter_employee(employee)
-    taskname = enter_taskname(taskname)
-    minutes = enter_minutes(minutes)
-    notes = enter_notes(notes)
+    if not employee:
+        employee = enter_employee(employee)
+    if not taskname:
+        taskname = enter_taskname(taskname)
+    if not minutes:
+        minutes = enter_minutes(minutes)
+    if not date:
+        notes = enter_notes(notes)
     if not date:
         date = datetime.datetime.now().date()
     return {"employee": employee,
