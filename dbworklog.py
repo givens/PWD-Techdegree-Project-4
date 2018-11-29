@@ -9,8 +9,9 @@ import datetime
 import sys
 import time
 
-import utils
 import models
+import utils
+
 from utils import fmt
 
 
@@ -49,9 +50,10 @@ class Menu:
 
     def _choose_option(self):
         """Make choice among menu options."""
-        choice = input("Which option do you choose?  ").lower().strip()
-        if choice in self.menu:
-            return self.menu[choice]
+        while True:
+            choice = input("Which option do you choose?  ").lower().strip()
+            if choice in self.menu:
+                return self.menu[choice]
 
 
 class MainMenu(Menu):

@@ -146,7 +146,7 @@ class UtilsTestCase(TestCase):
         out = utils.enter_employee(name)
         assert out == name
 
-    def test_enter_taskname(self):
+    def test_name(self):
         name = 'task1'
         out = utils.enter_taskname(taskname=name)
         assert out == name
@@ -242,7 +242,10 @@ class DBWorkLogTestCases(TestCase):
     def test_result_menu__loop(self):
         with patch('builtins.input', side_effect=['1', 'n']):
             func = self.result_menu._loop()
-            assert type(func) == type(None)
+            print("print func 2")
+            print(func)
+            print(type(func))
+            assert type(func) == type(self.result_menu.next)
 
     def test_result_menu_next(self):
         idx = self.result_menu.index
@@ -287,7 +290,10 @@ class DBWorkLogTestCases(TestCase):
     def test_main_menu__loop(self):
         with patch('builtins.input', side_effect=['1', 's']):
             func = self.main_menu._loop()
-            assert type(func) == type(None)
+            print("print func")
+            print(func)
+            print(type(func))
+            assert type(func) == type(self.main_menu.search_menu)
 
     def test_menu_type(self):
         self.assertIsInstance(self.menu,
@@ -314,8 +320,10 @@ class DBWorkLogTestCases(TestCase):
     #    assert out == 0
 
     def test__choose_option(self):
-        with patch('builtins.input', return_value='a', side_effect=None):
+        with patch('builtins.input', side_effect='a'):
             func = self.main_menu._choose_option()
+            print("func")
+            print(func)
             self.assertIsInstance(func,
                 type(self.main_menu.enter_task))
 
