@@ -128,8 +128,7 @@ def item_table(item_list, heading=None):
     if heading:
         print(heading)
     item_table_list(item_list)
-    item = item_table_evaluation(item_list)
-    return item
+    return item_table_evaluation(item_list)
 
 
 def enter_item(question="Enter item:  ", item=None):

@@ -7,18 +7,6 @@ minutes spent working on it, and any additional notes I want
 to record.
 """
 
-# Notes
-# sqlite3 task.db
-# .tables
-# select * from task;
-# .exit
-# .create() - creates a record
-# .select() - selects all
-# .save() - updates record
-# .get() - obtains one record
-# .delete_instance() - deletes a record
-
-
 import datetime
 
 from peewee import *

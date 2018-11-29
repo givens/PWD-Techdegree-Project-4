@@ -21,11 +21,15 @@ class Menu:
         self.menu = menu
         self.heading = heading
 
+    def _run(self, func):
+        """Run function by calling it"""
+        func()
+
     def menu_loop(self):
         """Show the menu."""
         while True:
             func = self._loop()
-            func()
+            self._run(func)
 
     def _loop(self):
         self._print_heading()
@@ -47,10 +51,6 @@ class Menu:
         choice = input("Which option do you choose?  ").lower().strip()
         if choice in self.menu:
             return self.menu[choice]
-
-    def _test_menu(self):
-        """Basic test for menu."""
-        return 0
 
 
 class MainMenu(Menu):
@@ -245,24 +245,21 @@ class ResultMenu(Menu):
     def reduced_main_menu():
         ReducedMainMenu().menu_loop()
 
-    def menu_loop(self):
-        """Show the menu."""
-        choice = None
-        while True:
-            self.check()
-            self._print_heading()
-            print(str(self))
-            self._print_info()
-            func = self._choose_option()
-            func()
-
     def check(self):
+        """Check if no ids left or database is empty."""
         if not self.ids:
             if not utils.test_empty_database():
                 self.search_menu()
             else:
                 self.reduced_main_menu()
 
+    def _loop(self):
+        """Show the result menu."""
+        self.check()
+        self._print_heading()
+        print(str(self))
+        self._print_info()
+        return self._choose_option()
 
     def __len__(self):
         return len(self.ids)
@@ -299,7 +296,12 @@ Date:      {}
         if self.index <= 0:
             self.index = len(self) - 1
 
-    def edit(self):
+    def edit(self,
+                employee=None,
+                taskname=None,
+                minutes=None,
+                notes=None,
+                date=None):
         """Edit current task."""
         old_id = self.ids[self.index]
         new_task = utils.enter_task()
