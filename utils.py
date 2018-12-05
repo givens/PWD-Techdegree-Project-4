@@ -86,6 +86,7 @@ def find_by_date(date):
     return [task.id for task in models.Task.select(models.Task.id).where(
         models.Task.date == date).order_by(models.Task.id)]
 
+
 def test_empty_database():
     """If database is empty, return True."""
     return len(models.Task.select()) == 0
@@ -94,6 +95,7 @@ def test_empty_database():
 def get_task(ind):
     """Get task by id"""
     return models.Task.get(id=ind)
+
 
 def clear():
     """Clear screen."""
@@ -136,7 +138,7 @@ def enter_item(question="Enter item:  ", item=None):
     while True:
         if not item:
             item = input(question)
-        if item == None:
+        if item is None:
             print("Try again.")
             continue
         return item
@@ -147,7 +149,7 @@ def enter_employee(employee=None):
     if employee:
         print(employee)
     return enter_item("Enter employee name:  ",
-                        employee)
+                      employee)
 
 
 def enter_taskname(taskname=None):
@@ -155,7 +157,7 @@ def enter_taskname(taskname=None):
     if taskname:
         print(taskname)
     return enter_item("Enter task name:  ",
-                        taskname)
+                      taskname)
 
 
 def enter_minutes(minutes=None):
@@ -183,10 +185,10 @@ def enter_notes(notes=None):
 
 
 def enter_task(employee=None,
-                taskname=None,
-                minutes=None,
-                notes=None,
-                date=None):
+               taskname=None,
+               minutes=None,
+               notes=None,
+               date=None):
     """Add an entry."""
     clear()
     if not employee:
@@ -204,4 +206,3 @@ def enter_task(employee=None,
             "minutes": minutes,
             "notes": notes,
             "date": date}
-

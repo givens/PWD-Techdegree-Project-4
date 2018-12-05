@@ -58,6 +58,7 @@ class Menu:
 
 class MainMenu(Menu):
     """Main menu"""
+
     def __init__(self):
         super().__init__(
             OrderedDict([
@@ -87,6 +88,7 @@ class MainMenu(Menu):
 
 class ReducedMainMenu(Menu):
     """Main menu without search menu because db is empty"""
+
     def __init__(self):
         super().__init__(
             OrderedDict([
@@ -110,6 +112,7 @@ class ReducedMainMenu(Menu):
 
 class SearchMenu(Menu):
     """Result menu"""
+
     def __init__(self):
         super().__init__(
             OrderedDict([
@@ -280,12 +283,12 @@ Minutes:   {}
 Notes:     {}
 Date:      {}
 """.format(self.index + 1,
-    len(self),
-    task.employee,
-    task.taskname,
-    task.minutes,
-    task.notes,
-    task.date.strftime(fmt))
+           len(self),
+            task.employee,
+            task.taskname,
+            task.minutes,
+            task.notes,
+            task.date.strftime(fmt))
 
     def next(self):
         """Go to next task."""
@@ -300,11 +303,11 @@ Date:      {}
             self.index = len(self) - 1
 
     def edit(self,
-                employee=None,
-                taskname=None,
-                minutes=None,
-                notes=None,
-                date=None):
+             employee=None,
+             taskname=None,
+             minutes=None,
+             notes=None,
+             date=None):
         """Edit current task."""
         old_id = self.ids[self.index]
         new_task = utils.enter_task()
@@ -319,6 +322,7 @@ Date:      {}
         if self.index >= len(self):
             self.index = 0
 
+
 def run():
     models.initialize()
     if not utils.test_empty_database():
@@ -326,7 +330,6 @@ def run():
     else:
         ReducedMainMenu().menu_loop()
 
+
 if __name__ == '__main__':
     run()
-
-
