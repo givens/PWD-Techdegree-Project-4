@@ -6,11 +6,16 @@ Utility methods for the Database Work Log
 
 import datetime
 import os
+import sys
 import time
 
 import models
 
 fmt = '%Y%m%d'
+
+def quit():
+    """Quit the program."""
+    sys.exit("Quit.")
 
 
 def create_task(new_task):
