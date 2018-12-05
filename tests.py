@@ -1,3 +1,10 @@
+"""
+tests.py
+-----------
+Test dbworklog.py, models.py, utils.py
+for DB Work Log project.
+"""
+
 import datetime
 import sys
 import time
@@ -25,6 +32,7 @@ class BaseTestCase(unittest.TestCase):
 
     def setUp(self):
         """Set up for all test cases"""
+        self.idx = 2
         self.date = datetime.datetime.now().date()
         self.min1 = '180'
         self.min2 = '240'
@@ -46,16 +54,24 @@ class BaseTestCase(unittest.TestCase):
                 'notes': self.notes2,
                 'date': self.date
         }
+        self.task3 = {
+                'employee': self.emp,
+                'taskname': self.task,
+                'minutes': self.min1,
+                'notes': self.notes2,
+                'date': self.date
+        }
         self.bad_task = {
                 'employee': 'test',
                 'taskname': 'test python',
                 'notes': 'databases',
                 'date': self.date
-        }
+        }  # no minutes
         test_db.connect()
         test_db.create_tables(MODELS)
         utils.create_task(self.task1)
         utils.create_task(self.task2)
+        utils.create_task(self.task3)
         self.menu = dbworklog.Menu(
             OrderedDict([
                 ('c', utils.clear)]),
@@ -158,7 +174,7 @@ class UtilsTestCase(BaseTestCase):
     def test_enter_item(self):
         """Test enter_item"""
         item = 'a'
-        with patch('builtins.input', side_effect=[item]:
+        with patch('builtins.input', side_effect=[item]):
             out=utils.enter_item("Q:  ")
             assert out == item
 
@@ -200,16 +216,18 @@ class UtilsTestCase(BaseTestCase):
 
     def test_enter_task(self):
         """Test enter_task"""
-        out=utils.enter_task(self.emp,
+        with patch('builtins.input',
+            side_effect = [self.emp,
                             self.task,
                             self.min1,
                             self.notes1,
-                            self.date)
-        assert out['employee'] == self.emp
-        assert out['taskname'] == self.task
-        assert out['minutes'] == self.min1
-        assert out['notes'] == self.notes1
-        assert out['date'] == self.date
+                            self.date]):
+            out=utils.enter_task()
+            assert out['employee'] == self.emp
+            assert out['taskname'] == self.task
+            assert out['minutes'] == int(self.min1)
+            assert out['notes'] == self.notes1
+            assert out['date'] == self.date
 
     def test_create_task(self):
         """Test create_task"""
@@ -237,30 +255,49 @@ class DBWorkLogTestCases(BaseTestCase):
         """Test _loop in ResultMenu"""
         with patch('builtins.input', side_effect=['1', 'n']):
             func=self.result_menu._loop()
-            print("print func 2")
-            print(func)
-            print(type(func))
             assert type(func) == type(self.result_menu.next)
 
     def test_result_menu_next(self):
         """Test next in ResultMenu"""
-        idx=self.result_menu.index
+        idx = 0
+        self.result_menu.index = idx
         self.result_menu.next()
         idx2=self.result_menu.index
-        if idx == len(self.result_menu) - 1:
+        if idx >= len(self.result_menu):
+            assert idx2 == 0
+        else:
+            assert idx2 == idx + 1
+
+    def test_result_menu_next_again(self):
+        """Test next in ResultMenu"""
+        idx = 10
+        self.result_menu.index = idx
+        self.result_menu.next()
+        idx2=self.result_menu.index
+        if idx >= len(self.result_menu):
             assert idx2 == 0
         else:
             assert idx2 == idx + 1
 
     def test_result_menu_delete(self):
         """Test delete in ResultMenu"""
-        idx=self.result_menu.index
+        self.result_menu.index = self.idx
         self.result_menu.delete()
         idx2=self.result_menu.index
-        if idx == len(self.result_menu) - 1:
+        if self.idx >= len(self.result_menu):
             assert idx2 == 0
         else:
-            assert idx2 == idx
+            assert idx2 == self.idx
+
+    def test_result_menu_delete_again(self):
+        """Test delete in ResultMenu"""
+        self.result_menu.index = self.idx
+        self.result_menu.delete()
+        idx2=self.result_menu.index
+        if self.idx >= len(self.result_menu):
+            assert idx2 == 0
+        else:
+            assert idx2 == self.idx
 
     def test_result_menu_prev(self):
         """Test prev in ResultMenu"""
@@ -275,13 +312,15 @@ class DBWorkLogTestCases(BaseTestCase):
     def test_result_menu_edit(self):
         """Test edit in ResultMenu"""
         idx=self.result_menu.index
-        self.result_menu.edit(self.emp,
-                                self.task1,
-                                self.min1,
-                                self.notes1,
-                                self.date)
-        idx2=self.result_menu.index
-        assert idx2 == idx
+        with patch('builtins.input',
+            side_effect = [self.emp,
+                            self.task,
+                            self.min1,
+                            self.notes1,
+                            self.date]):
+            self.result_menu.edit()
+            idx2=self.result_menu.index
+            assert idx2 == idx
 
     def test_result_menu___len__(self):
         """Test __len__ in ResultMenu"""
@@ -291,9 +330,6 @@ class DBWorkLogTestCases(BaseTestCase):
         """Test _loop in MainMenu"""
         with patch('builtins.input', side_effect=['1', 's']):
             func=self.main_menu._loop()
-            print("print func")
-            print(func)
-            print(type(func))
             assert type(func) == type(self.main_menu.search_menu)
 
     def test_menu_type(self):
@@ -325,8 +361,6 @@ class DBWorkLogTestCases(BaseTestCase):
         """Test _choose_option in MainMenu"""
         with patch('builtins.input', side_effect='a'):
             func=self.main_menu._choose_option()
-            print("func")
-            print(func)
             self.assertIsInstance(func,
                 type(self.main_menu.enter_task))
 
@@ -400,7 +434,6 @@ class DBWorkLogTestCases(BaseTestCase):
         """Test _get_date in SearchMenu"""
         date=datetime.datetime.now().date()
         date_str=date.strftime('%Y%m%d')
-        print(date_str)
         with patch('builtins.input', side_effect=['a', '2', date_str]):
             out=self.search_menu._get_date()
             assert out == date
@@ -408,13 +441,6 @@ class DBWorkLogTestCases(BaseTestCase):
     def test_search_menu__date_ids(self):
         """Test _date_ids in SearchMenu"""
         with patch('builtins.input', side_effect=['1']):
-            ids=self.search_menu._date_ids()
-            self.assertIsInstance(ids, list)
-            self.assertIsInstance(ids[0], int)
-
-    def test_search_menu__date_ids_value_error(self):
-        """Test _date_ids value error in SearchMenu"""
-         with patch('builtins.input', side_effect=['0', '1']):
             ids=self.search_menu._date_ids()
             self.assertIsInstance(ids, list)
             self.assertIsInstance(ids[0], int)
@@ -449,8 +475,6 @@ class DBWorkLogTestCases(BaseTestCase):
         """Test _run in Menu"""
         with patch('builtins.input', side_effect='15'):
             out=self.menu._run(utils.enter_minutes)
-            print("output for test_menu__run")
-            print(out)
             assert type(out) == type(None)
 
     def test_main_menu_enter_task(self):
@@ -458,10 +482,6 @@ class DBWorkLogTestCases(BaseTestCase):
         with patch('builtins.input', side_effect=[self.emp, self.task, self.min1, self.notes2, self.date]):
             out=self.main_menu.enter_task()
             assert type(out) == type(None)
-
-    # def test_reduced_menu_enter_task(self):
-    #    out = self.reduced_main_menu.enter_task()
-    #    assert type(out) == type(None)
 
 
 if __name__ == '__main__':
