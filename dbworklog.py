@@ -82,8 +82,9 @@ class MainMenu(Menu):
     @staticmethod
     def quit():
         """Quit."""
-        print("Quit.")
-        sys.exit(0)
+        utils.quit()
+
+
 
 
 class ReducedMainMenu(Menu):
@@ -106,8 +107,7 @@ class ReducedMainMenu(Menu):
     @staticmethod
     def quit():
         """Quit."""
-        print("Quit.")
-        sys.exit(0)
+        utils.quit()
 
 
 class SearchMenu(Menu):
