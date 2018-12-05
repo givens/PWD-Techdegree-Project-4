@@ -25,7 +25,7 @@ def save_task(old_id, new_task):
     task.taskname = new_task['taskname']
     task.minutes = new_task['minutes']
     task.notes = new_task['notes']
-    #task.date = new_task['date']  # don't update date
+    task.date = new_task['date']  # don't update date
     task.save()
     return 0
 
